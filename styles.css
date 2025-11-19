@@ -1,0 +1,64 @@
+body {
+  margin: 0;
+  font-family: Georgia, serif;
+  background: #f9f2e7;
+  color: #2c1b10;
+}
+
+header {
+  background: #5a3f2f;
+  color: #f5e9d5;
+  padding: 1rem;
+  text-align: center;
+  border-bottom: 4px solid #3c281c;
+}
+
+.tagline {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+#feed {
+  padding: 1rem;
+}
+
+.post {
+  background: #fff8e5;
+  border: 2px solid #c7a97a;
+  margin: 0.5rem 0;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 2px 2px 0 #b48b4e;
+}
+
+/* Password screen */
+#password-screen {
+  text-align: center;
+  margin-top: 5rem;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Admin drawer */
+.drawer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffe9bf;
+  border-top: 3px solid #b48b4e;
+  padding: 1rem;
+  box-shadow: 0 -4px 10px rgba(0,0,0,0.2);
+}
+
+.drawer h2 {
+  margin-top: 0;
+}
+
+.drawer input, .drawer textarea, .drawer select {
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+}

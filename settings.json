@@ -1,0 +1,12 @@
+{
+  "postingInterval": 3000,
+  "scrollSpeed": 1,
+  "autoPlay": true,
+  "messages": [
+    "Hear ye! A new decree is posted by the town crier!",
+    "The blacksmith complains about rising iron prices again.",
+    "A local bard seeks recommendations for a new lute.",
+    "Town guard spotted a suspicious hooded traveler.",
+    "Farmer Jorik proudly presents his unusually large turnip."
+  ]
+}

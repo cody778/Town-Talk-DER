@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TownTalk Admin Panel</title>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="password-screen">
+  <h2>Admin Access</h2>
+  <input type="password" id="admin-pass" placeholder="Enter password">
+  <button id="enter-admin">Enter</button>
+</div>
+
+<div id="admin-panel" class="hidden">
+  <div class="drawer">
+    <h2>Admin Controls</h2>
+
+    <label>Posting Interval (ms)</label>
+    <input type="number" id="interval-input">
+
+    <label>Scroll Speed</label>
+    <input type="number" id="speed-input">
+
+    <label>Auto Play</label>
+    <select id="autoplay-input">
+      <option value="true">Enabled</option>
+      <option value="false">Disabled</option>
+    </select>
+
+    <label>Messages</label>
+    <textarea id="messages-input" rows="10"></textarea>
+
+    <button id="save-settings">Save To Firebase</button>
+  </div>
+</div>
+
+<script src="scripts/firebase-config.js"></script>
+<script src="scripts/admin.js"></script>
+</body>
+</html>
