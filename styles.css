@@ -41,17 +41,24 @@ header {
   display: none;
 }
 
-/* Admin drawer */
+/* Admin drawer — now at TOP instead of bottom */
 .drawer {
   position: fixed;
-  bottom: 0;
+  top: 0;
   left: 0;
   right: 0;
   background: #ffe9bf;
-  border-top: 3px solid #b48b4e;
+  border-bottom: 3px solid #b48b4e;
   padding: 1rem;
-  box-shadow: 0 -4px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  z-index: 100;
 }
+
+/* spacing fix so content doesn't hide behind drawer */
+#admin-panel {
+  padding-top: 20px; /* adjust height if your drawer gets bigger */
+}
+
 
 .drawer h2 {
   margin-top: 0;
