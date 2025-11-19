@@ -1,5 +1,5 @@
 const PASSWORD = "crowns&coins94";
-const db = firebase.database();
+var db = firebase.database();
 
 document.getElementById("enter-admin").addEventListener("click", () => {
   if (document.getElementById("admin-pass").value === PASSWORD) {
