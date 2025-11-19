@@ -32,3 +32,22 @@ document.getElementById("save-settings").addEventListener("click", () => {
   db.ref("settings").update(updated);
   alert("Settings updated for ALL viewers.");
 });
+
+// Start posting messages
+document.getElementById("start-btn").addEventListener("click", () => {
+  db.ref("settings").update({ playState: "start" });
+  alert("Feed started.");
+});
+
+// Pause posting messages
+document.getElementById("pause-btn").addEventListener("click", () => {
+  db.ref("settings").update({ playState: "pause" });
+  alert("Feed paused.");
+});
+
+// Stop/reset feed
+document.getElementById("stop-btn").addEventListener("click", () => {
+  db.ref("settings").update({ playState: "stop" });
+  alert("Feed stopped/reset.");
+});
+

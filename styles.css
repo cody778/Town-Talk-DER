@@ -69,3 +69,25 @@ header {
   margin-bottom: 1rem;
   padding: 0.5rem;
 }
+
+.admin-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.admin-buttons button {
+  flex: 1;
+  padding: 0.7rem;
+  background: #d7b37b;
+  border: 2px solid #b48b4e;
+  color: #3c281c;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 #b48b4e;
+}
+
+.admin-buttons button:hover {
+  background: #e6c996;
+}
