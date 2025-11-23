@@ -82,6 +82,33 @@ function generateRandomHandle() {
 }
 
 // ----------------------------------------
+// FORMAT TIMESTAMP
+// ----------------------------------------
+function formatTimestamp(timestamp) {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  
+  if (diffMins < 1) {
+    return "now";
+  } else if (diffMins < 60) {
+    return `${diffMins}m`;
+  } else if (diffHours < 24) {
+    return `${diffHours}h`;
+  } else if (diffDays < 7) {
+    return `${diffDays}d`;
+  } else {
+    // Format as date
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    return `${month}/${day}`;
+  }
+}
+
+// ----------------------------------------
 // LISTEN TO POSTED MESSAGES FROM FIREBASE
 // ----------------------------------------
 function listenToFeed() {
@@ -98,10 +125,10 @@ function listenToFeed() {
       feed.innerHTML = "";
       displayedPostIds.clear();
       
-      // Sort by timestamp and display all existing posts
+      // Sort by timestamp DESCENDING (newest first)
       const sortedPosts = Object.entries(posts)
         .map(([id, post]) => ({ id, ...post }))
-        .sort((a, b) => a.timestamp - b.timestamp);
+        .sort((a, b) => b.timestamp - a.timestamp);
       
       sortedPosts.forEach(post => {
         if (!displayedPostIds.has(post.id)) {
@@ -114,10 +141,10 @@ function listenToFeed() {
       // Mark initial load as complete
       initialLoadComplete = true;
       
-      // Scroll to bottom after loading
+      // Scroll to top after loading (newest at top)
       setTimeout(() => {
         window.scrollTo({
-          top: document.body.scrollHeight,
+          top: 0,
           behavior: "auto"
         });
       }, 100);
@@ -169,7 +196,7 @@ function addPostToFeed(postData, timestamp, scroll = true, postId = null) {
   const contentDiv = document.createElement("div");
   contentDiv.className = "tweet-content";
   
-  // Header with username and handle
+  // Header with username, handle, and timestamp
   const headerDiv = document.createElement("div");
   headerDiv.className = "tweet-header";
   
@@ -181,8 +208,13 @@ function addPostToFeed(postData, timestamp, scroll = true, postId = null) {
   handleSpan.className = "handle";
   handleSpan.textContent = postData.handle || '@user';
   
+  const timestampSpan = document.createElement("span");
+  timestampSpan.className = "timestamp";
+  timestampSpan.textContent = formatTimestamp(timestamp);
+  
   headerDiv.appendChild(usernameSpan);
   headerDiv.appendChild(handleSpan);
+  headerDiv.appendChild(timestampSpan);
   
   // Message text
   const messageDiv = document.createElement("div");
@@ -196,11 +228,17 @@ function addPostToFeed(postData, timestamp, scroll = true, postId = null) {
   postDiv.appendChild(profilePic);
   postDiv.appendChild(contentDiv);
   
-  feed.appendChild(postDiv);
+  // Insert at the top (newest first) - insert before first child or append if empty
+  if (feed.firstChild) {
+    feed.insertBefore(postDiv, feed.firstChild);
+  } else {
+    feed.appendChild(postDiv);
+  }
 
   if (scroll) {
+    // Scroll to top when new post is added
     window.scrollTo({
-      top: document.body.scrollHeight,
+      top: 0,
       behavior: "smooth"
     });
   }
@@ -267,70 +305,83 @@ function startPosting() {
   }
   
   isPaused = false;
+  
+  // Post first message immediately, then schedule the rest
+  postNextMessage();
+}
 
-  // Start the interval to post messages
-  intervalId = setInterval(() => {
-    if (isPaused) return;
-    if (isPostingLocked) {
-      console.log("Posting is locked, skipping...");
+// ----------------------------------------
+// POST NEXT MESSAGE (with proper delay)
+// ----------------------------------------
+function postNextMessage() {
+  if (isPaused) return;
+  if (isPostingLocked) {
+    console.log("Posting is locked, skipping...");
+    return;
+  }
+  
+  // Use a transaction-like approach to prevent race conditions
+  isPostingLocked = true;
+  
+  // Check current count and get the next message index atomically
+  db.ref("feed/posts").once("value", snapshot => {
+    const posts = snapshot.val();
+    const currentCount = posts ? Object.keys(posts).length : 0;
+    
+    if (currentCount >= settings.messages.length) {
+      intervalId = null;
+      isPostingLocked = false;
+      console.log("All messages posted");
       return;
     }
+
+    // Get the message content to check for duplicates
+    const messageToPost = settings.messages[currentCount];
+    const parsedMessage = parseMessage(messageToPost);
     
-    // Use a transaction-like approach to prevent race conditions
-    isPostingLocked = true;
+    // Check if this exact message was already posted (by content + timestamp proximity)
+    let messageAlreadyPosted = false;
+    if (posts) {
+      const recentPosts = Object.values(posts)
+        .filter(p => Math.abs(p.timestamp - Date.now()) < 5000); // Within 5 seconds
+      messageAlreadyPosted = recentPosts.some(p => {
+        const existingMsg = parseMessage(p.message || p);
+        return existingMsg.message === parsedMessage.message &&
+               existingMsg.username === parsedMessage.username;
+      });
+    }
     
-    // Check current count and get the next message index atomically
-    db.ref("feed/posts").once("value", snapshot => {
-      const posts = snapshot.val();
-      const currentCount = posts ? Object.keys(posts).length : 0;
-      
-      if (currentCount >= settings.messages.length) {
-        clearInterval(intervalId);
-        intervalId = null;
+    if (messageAlreadyPosted) {
+      console.log("Message already posted, skipping duplicate");
+      isPostingLocked = false;
+      // Schedule next attempt after delay
+      setTimeout(() => postNextMessage(), settings.postingInterval || 3000);
+      return;
+    }
+
+    // Post the next message to Firebase (this will trigger all listeners)
+    const postData = {
+      message: parsedMessage, // Store as structured object
+      timestamp: Date.now()
+    };
+
+    db.ref("feed/posts").push(postData)
+      .then(() => {
+        // Update currentIndex in Firebase for tracking
+        db.ref("settings/currentIndex").set(currentCount + 1);
         isPostingLocked = false;
-        return;
-      }
-
-      // Get the message content to check for duplicates
-      const messageToPost = settings.messages[currentCount];
-      const parsedMessage = parseMessage(messageToPost);
-      
-      // Check if this exact message was already posted (by content + timestamp proximity)
-      let messageAlreadyPosted = false;
-      if (posts) {
-        const recentPosts = Object.values(posts)
-          .filter(p => Math.abs(p.timestamp - Date.now()) < 5000); // Within 5 seconds
-        messageAlreadyPosted = recentPosts.some(p => {
-          const existingMsg = parseMessage(p.message || p);
-          return existingMsg.message === parsedMessage.message &&
-                 existingMsg.username === parsedMessage.username;
-        });
-      }
-      
-      if (messageAlreadyPosted) {
-        console.log("Message already posted, skipping duplicate");
+        
+        // Schedule next message after the posting interval
+        const delay = settings.postingInterval || 3000;
+        setTimeout(() => postNextMessage(), delay);
+      })
+      .catch(err => {
+        console.error("Error posting message:", err);
         isPostingLocked = false;
-        return;
-      }
-
-      // Post the next message to Firebase (this will trigger all listeners)
-      const postData = {
-        message: parsedMessage, // Store as structured object
-        timestamp: Date.now()
-      };
-
-      db.ref("feed/posts").push(postData)
-        .then(() => {
-          // Update currentIndex in Firebase for tracking
-          db.ref("settings/currentIndex").set(currentCount + 1);
-          isPostingLocked = false;
-        })
-        .catch(err => {
-          console.error("Error posting message:", err);
-          isPostingLocked = false;
-        });
-    });
-  }, settings.postingInterval || 3000);
+        // Retry after delay on error
+        setTimeout(() => postNextMessage(), settings.postingInterval || 3000);
+      });
+  });
 }
 
 // ----------------------------------------
