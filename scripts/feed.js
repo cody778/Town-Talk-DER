@@ -6,6 +6,80 @@ let isPaused = false;
 let hasInitialized = false;
 
 // ----------------------------------------
+// PARSE MESSAGE FORMAT
+// Supports: "emoji|username|handle|message" or object format
+// ----------------------------------------
+function parseMessage(messageData) {
+  // If it's already an object with the right structure
+  if (typeof messageData === 'object' && messageData.username) {
+    return {
+      emoji: messageData.emoji || getRandomEmoji(),
+      username: messageData.username,
+      handle: messageData.handle || `@${messageData.username.toLowerCase().replace(/\s+/g, '')}`,
+      message: messageData.message
+    };
+  }
+  
+  // If it's a string, try to parse it
+  if (typeof messageData === 'string') {
+    const parts = messageData.split('|');
+    if (parts.length >= 4) {
+      return {
+        emoji: parts[0].trim() || getRandomEmoji(),
+        username: parts[1].trim(),
+        handle: parts[2].trim() || `@${parts[1].toLowerCase().replace(/\s+/g, '')}`,
+        message: parts.slice(3).join('|').trim()
+      };
+    }
+    // Fallback: treat entire string as message, generate username/handle
+    return {
+      emoji: getRandomEmoji(),
+      username: generateRandomUsername(),
+      handle: generateRandomHandle(),
+      message: messageData
+    };
+  }
+  
+  // Default fallback
+  return {
+    emoji: getRandomEmoji(),
+    username: generateRandomUsername(),
+    handle: generateRandomHandle(),
+    message: String(messageData)
+  };
+}
+
+// ----------------------------------------
+// GENERATE RANDOM EMOJI
+// ----------------------------------------
+function getRandomEmoji() {
+  const emojis = ['👤', '🧑', '👨', '👩', '🧑‍💼', '👨‍💼', '👩‍💼', '🧑‍🎓', '👨‍🎓', '👩‍🎓', 
+                  '🧑‍🔬', '👨‍🔬', '👩‍🔬', '🧑‍⚕️', '👨‍⚕️', '👩‍⚕️', '🧑‍🏫', '👨‍🏫', '👩‍🏫',
+                  '🧑‍🎨', '👨‍🎨', '👩‍🎨', '🧑‍🚀', '👨‍🚀', '👩‍🚀', '🧑‍✈️', '👨‍✈️', '👩‍✈️',
+                  '🤴', '👸', '🦸', '🦹', '🧙', '🧚', '🧛', '🧜', '🧝', '🧞', '🧟',
+                  '🎭', '🎪', '🎨', '🎬', '🎤', '🎧', '🎮', '🎯', '🎲', '🎸', '🎺'];
+  return emojis[Math.floor(Math.random() * emojis.length)];
+}
+
+// ----------------------------------------
+// GENERATE RANDOM USERNAME
+// ----------------------------------------
+function generateRandomUsername() {
+  const names = ['TownCrier', 'GossipGuild', 'NewsBearer', 'MessageMaster', 
+                 'InfoKeeper', 'UpdateUser', 'FeedFriend', 'PostPerson'];
+  return names[Math.floor(Math.random() * names.length)];
+}
+
+// ----------------------------------------
+// GENERATE RANDOM HANDLE
+// ----------------------------------------
+function generateRandomHandle() {
+  const handles = ['@towncrier', '@gossipguild', '@newsbearer', '@messagemaster',
+                   '@infokeeper', '@updateuser', '@feedfriend', '@postperson'];
+  return handles[Math.floor(Math.random() * handles.length)];
+}
+
+// ----------------------------------------
 // LISTEN TO POSTED MESSAGES FROM FIREBASE
 // ----------------------------------------
 function listenToFeed() {
@@ -13,8 +87,9 @@ function listenToFeed() {
   
   feedRef.on("child_added", snapshot => {
     const post = snapshot.val();
-    if (post && post.message) {
-      addPostToFeed(post.message, post.timestamp);
+    if (post) {
+      const parsedPost = parseMessage(post.message || post);
+      addPostToFeed(parsedPost, post.timestamp);
     }
   });
 
@@ -28,7 +103,8 @@ function listenToFeed() {
       // Sort by timestamp and display all existing posts
       const sortedPosts = Object.values(posts).sort((a, b) => a.timestamp - b.timestamp);
       sortedPosts.forEach(post => {
-        addPostToFeed(post.message, post.timestamp, false);
+        const parsedPost = parseMessage(post.message || post);
+        addPostToFeed(parsedPost, post.timestamp, false);
       });
       
       // Scroll to bottom after loading
@@ -43,14 +119,51 @@ function listenToFeed() {
 }
 
 // ----------------------------------------
-// ADD POST TO FEED (UI)
+// ADD POST TO FEED (UI) - Twitter-like format
 // ----------------------------------------
-function addPostToFeed(message, timestamp, scroll = true) {
+function addPostToFeed(postData, timestamp, scroll = true) {
   const feed = document.getElementById("feed");
-  const div = document.createElement("div");
-  div.className = "post";
-  div.textContent = message;
-  feed.appendChild(div);
+  
+  const postDiv = document.createElement("div");
+  postDiv.className = "tweet";
+  
+  // Profile picture (emoji)
+  const profilePic = document.createElement("div");
+  profilePic.className = "profile-pic";
+  profilePic.textContent = postData.emoji || '👤';
+  
+  // Post content container
+  const contentDiv = document.createElement("div");
+  contentDiv.className = "tweet-content";
+  
+  // Header with username and handle
+  const headerDiv = document.createElement("div");
+  headerDiv.className = "tweet-header";
+  
+  const usernameSpan = document.createElement("span");
+  usernameSpan.className = "username";
+  usernameSpan.textContent = postData.username || 'User';
+  
+  const handleSpan = document.createElement("span");
+  handleSpan.className = "handle";
+  handleSpan.textContent = postData.handle || '@user';
+  
+  headerDiv.appendChild(usernameSpan);
+  headerDiv.appendChild(handleSpan);
+  
+  // Message text
+  const messageDiv = document.createElement("div");
+  messageDiv.className = "tweet-message";
+  messageDiv.textContent = postData.message || '';
+  
+  // Assemble the tweet
+  contentDiv.appendChild(headerDiv);
+  contentDiv.appendChild(messageDiv);
+  
+  postDiv.appendChild(profilePic);
+  postDiv.appendChild(contentDiv);
+  
+  feed.appendChild(postDiv);
 
   if (scroll) {
     window.scrollTo({
@@ -149,8 +262,10 @@ function startPosting() {
 
         // Post the next message to Firebase (this will trigger all listeners)
         const messageToPost = settings.messages[currentCount];
+        const parsedMessage = parseMessage(messageToPost);
+        
         const postData = {
-          message: messageToPost,
+          message: parsedMessage, // Store as structured object
           timestamp: Date.now()
         };
 

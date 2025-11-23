@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TownTalk Admin Panel</title>
 
   <link rel="stylesheet" href="styles.css">
@@ -37,7 +38,12 @@
     </select>
 
     <label>Messages</label>
-    <textarea id="messages-input" rows="10"></textarea>
+    <small style="display: block; color: #71767b; margin-bottom: 0.5rem; font-size: 0.8125rem;">
+      Format: emoji|username|handle|message<br>
+      Example: 👤|JohnDoe|@johndoe|Hello world!<br>
+      Or just: Your message here (will auto-generate username/handle)
+    </small>
+    <textarea id="messages-input" rows="10" placeholder="👤|JohnDoe|@johndoe|Hello world!&#10;👨|JaneSmith|@janesmith|Another message"></textarea>
 
     <button id="save-settings">Save To Firebase</button>
   </div>

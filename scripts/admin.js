@@ -31,7 +31,20 @@ function loadSettings() {
     document.getElementById("interval-input").value = s.postingInterval;
     document.getElementById("speed-input").value = s.scrollSpeed;
     document.getElementById("autoplay-input").value = s.autoPlay;
-    document.getElementById("messages-input").value = s.messages.join("\n");
+    
+    // Handle messages - convert objects back to format string if needed
+    if (s.messages && Array.isArray(s.messages)) {
+      const formattedMessages = s.messages.map(msg => {
+        if (typeof msg === 'object' && msg.username) {
+          // Convert object back to format: emoji|username|handle|message
+          return `${msg.emoji || '👤'}|${msg.username}|${msg.handle || '@' + msg.username.toLowerCase()}|${msg.message}`;
+        }
+        return msg;
+      });
+      document.getElementById("messages-input").value = formattedMessages.join("\n");
+    } else {
+      document.getElementById("messages-input").value = "";
+    }
 
     // If you want to show current play state:
     console.log("Current playState:", s.playState);

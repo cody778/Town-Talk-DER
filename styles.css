@@ -1,93 +1,308 @@
-body {
-  margin: 0;
-  font-family: Georgia, serif;
-  background: #f9f2e7;
-  color: #2c1b10;
+* {
+  box-sizing: border-box;
 }
 
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #000;
+  color: #fff;
+  line-height: 1.5;
+}
+
+/* Header */
 header {
-  background: #5a3f2f;
-  color: #f5e9d5;
-  padding: 1rem;
-  text-align: center;
-  border-bottom: 4px solid #3c281c;
+  background: #000;
+  color: #fff;
+  padding: 0.75rem 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid #2f3336;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
 }
 
 .tagline {
-  font-size: 0.9rem;
-  opacity: 0.8;
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin: 0.25rem 0 0 0;
 }
 
+/* Feed Container */
 #feed {
-  padding: 1rem;
+  padding: 0;
+  max-width: 100%;
+  margin: 0 auto;
 }
 
-.post {
-  background: #fff8e5;
-  border: 2px solid #c7a97a;
-  margin: 0.5rem 0;
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 2px 2px 0 #b48b4e;
+/* Twitter-like Tweet */
+.tweet {
+  display: flex;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #2f3336;
+  transition: background-color 0.2s;
+  min-height: auto;
 }
 
-/* Password screen */
+.tweet:hover {
+  background-color: #16181c;
+}
+
+/* Profile Picture (Emoji) */
+.profile-pic {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+  background: #1a1a1a;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Tweet Content */
+.tweet-content {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+.tweet-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.username {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: #fff;
+}
+
+.handle {
+  font-size: 0.9375rem;
+  color: #71767b;
+}
+
+.tweet-message {
+  font-size: 0.9375rem;
+  color: #e7e9ea;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  line-height: 1.4;
+}
+
+/* Admin Panel Styles */
 #password-screen {
   text-align: center;
   margin-top: 5rem;
+  padding: 1rem;
+  color: #fff;
+}
+
+#password-screen input {
+  padding: 0.75rem;
+  margin: 0.5rem;
+  border: 1px solid #2f3336;
+  background: #16181c;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 1rem;
+  width: calc(100% - 2rem);
+  max-width: 300px;
+}
+
+#password-screen button {
+  padding: 0.75rem 1.5rem;
+  margin: 0.5rem;
+  background: #1d9bf0;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#password-screen button:hover {
+  background: #1a8cd8;
 }
 
 .hidden {
   display: none;
 }
 
-/* Admin drawer — now at TOP instead of bottom */
+/* Admin drawer — mobile responsive */
 .drawer {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  background: #ffe9bf;
-  border-bottom: 3px solid #b48b4e;
+  background: #16181c;
+  border-bottom: 1px solid #2f3336;
   padding: 1rem;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
   z-index: 100;
+  max-height: 80vh;
+  overflow-y: auto;
+  color: #fff;
+}
+
+.drawer h2 {
+  margin-top: 0;
+  font-size: 1.25rem;
+  color: #fff;
+}
+
+.drawer label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: #71767b;
+  font-weight: 500;
+}
+
+.drawer input, 
+.drawer textarea, 
+.drawer select {
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border: 1px solid #2f3336;
+  background: #000;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-family: inherit;
+}
+
+.drawer input:focus,
+.drawer textarea:focus,
+.drawer select:focus {
+  outline: 2px solid #1d9bf0;
+  outline-offset: 2px;
+  border-color: #1d9bf0;
+}
+
+.drawer textarea {
+  resize: vertical;
+  min-height: 120px;
 }
 
 /* spacing fix so content doesn't hide behind drawer */
 #admin-panel {
-  padding-top: 20px; /* adjust height if your drawer gets bigger */
-}
-
-
-.drawer h2 {
-  margin-top: 0;
-}
-
-.drawer input, .drawer textarea, .drawer select {
-  width: 100%;
-  margin-bottom: 1rem;
-  padding: 0.5rem;
+  padding-top: 20px;
 }
 
 .admin-buttons {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
 .admin-buttons button {
   flex: 1;
-  padding: 0.7rem;
-  background: #d7b37b;
-  border: 2px solid #b48b4e;
-  color: #3c281c;
-  font-weight: bold;
-  border-radius: 6px;
+  min-width: 80px;
+  padding: 0.75rem;
+  background: #1d9bf0;
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 20px;
   cursor: pointer;
-  box-shadow: 2px 2px 0 #b48b4e;
+  font-size: 0.9375rem;
+  transition: background-color 0.2s;
 }
 
 .admin-buttons button:hover {
-  background: #e6c996;
+  background: #1a8cd8;
+}
+
+.admin-buttons button:active {
+  background: #1773b8;
+}
+
+#save-settings {
+  width: 100%;
+  padding: 0.875rem;
+  background: #1d9bf0;
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+#save-settings:hover {
+  background: #1a8cd8;
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+  header {
+    padding: 0.75rem;
+  }
+  
+  header h1 {
+    font-size: 1.125rem;
+  }
+  
+  .tagline {
+    font-size: 0.6875rem;
+  }
+  
+  .tweet {
+    padding: 0.75rem;
+  }
+  
+  .profile-pic {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    font-size: 1.75rem;
+    margin-right: 0.625rem;
+  }
+  
+  .username,
+  .handle,
+  .tweet-message {
+    font-size: 0.875rem;
+  }
+  
+  .drawer {
+    padding: 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  .drawer h2 {
+    font-size: 1.125rem;
+  }
+  
+  .admin-buttons {
+    flex-direction: column;
+  }
+  
+  .admin-buttons button {
+    width: 100%;
+  }
+}
+
+/* Prevent text selection on mobile for better UX */
+@media (max-width: 768px) {
+  .tweet {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
