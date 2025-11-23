@@ -4,6 +4,8 @@ let intervalId = null;
 let settings = {};
 let isPaused = false;
 let hasInitialized = false;
+let displayedPostIds = new Set(); // Track displayed posts to prevent duplicates
+let isPostingLocked = false; // Prevent multiple simultaneous posts
 
 // ----------------------------------------
 // PARSE MESSAGE FORMAT
@@ -85,27 +87,32 @@ function generateRandomHandle() {
 function listenToFeed() {
   const feedRef = db.ref("feed/posts");
   
-  feedRef.on("child_added", snapshot => {
-    const post = snapshot.val();
-    if (post) {
-      const parsedPost = parseMessage(post.message || post);
-      addPostToFeed(parsedPost, post.timestamp);
-    }
-  });
-
-  // Load existing posts when page loads
+  // Track if we've loaded initial posts to prevent duplicates from child_added
+  let initialLoadComplete = false;
+  
+  // Load existing posts when page loads first
   feedRef.once("value", snapshot => {
     const posts = snapshot.val();
     if (posts) {
       const feed = document.getElementById("feed");
       feed.innerHTML = "";
+      displayedPostIds.clear();
       
       // Sort by timestamp and display all existing posts
-      const sortedPosts = Object.values(posts).sort((a, b) => a.timestamp - b.timestamp);
+      const sortedPosts = Object.entries(posts)
+        .map(([id, post]) => ({ id, ...post }))
+        .sort((a, b) => a.timestamp - b.timestamp);
+      
       sortedPosts.forEach(post => {
-        const parsedPost = parseMessage(post.message || post);
-        addPostToFeed(parsedPost, post.timestamp, false);
+        if (!displayedPostIds.has(post.id)) {
+          const parsedPost = parseMessage(post.message || post);
+          addPostToFeed(parsedPost, post.timestamp, false, post.id);
+          displayedPostIds.add(post.id);
+        }
       });
+      
+      // Mark initial load as complete
+      initialLoadComplete = true;
       
       // Scroll to bottom after loading
       setTimeout(() => {
@@ -114,18 +121,44 @@ function listenToFeed() {
           behavior: "auto"
         });
       }, 100);
+    } else {
+      initialLoadComplete = true;
     }
+    
+    // Now set up listener for new posts (only after initial load)
+    feedRef.on("child_added", snapshot => {
+      // Only process if initial load is complete to avoid duplicates
+      if (!initialLoadComplete) return;
+      
+      const postId = snapshot.key;
+      const post = snapshot.val();
+      
+      // Skip if we've already displayed this post
+      if (displayedPostIds.has(postId)) {
+        return;
+      }
+      
+      if (post) {
+        const parsedPost = parseMessage(post.message || post);
+        addPostToFeed(parsedPost, post.timestamp, true, postId);
+        displayedPostIds.add(postId);
+      }
+    });
   });
 }
 
 // ----------------------------------------
 // ADD POST TO FEED (UI) - Twitter-like format
 // ----------------------------------------
-function addPostToFeed(postData, timestamp, scroll = true) {
+function addPostToFeed(postData, timestamp, scroll = true, postId = null) {
   const feed = document.getElementById("feed");
   
+  // Use postId as data attribute to track duplicates
   const postDiv = document.createElement("div");
   postDiv.className = "tweet";
+  if (postId) {
+    postDiv.setAttribute("data-post-id", postId);
+  }
   
   // Profile picture (emoji)
   const profilePic = document.createElement("div");
@@ -235,49 +268,69 @@ function startPosting() {
   
   isPaused = false;
 
-  // Get current posted count from Firebase
-  db.ref("feed/posts").once("value", snapshot => {
-    const posts = snapshot.val();
-    const currentCount = posts ? Object.keys(posts).length : 0;
-    
-    if (currentCount >= settings.messages.length) {
-      console.log("All messages already posted");
+  // Start the interval to post messages
+  intervalId = setInterval(() => {
+    if (isPaused) return;
+    if (isPostingLocked) {
+      console.log("Posting is locked, skipping...");
       return;
     }
-
-    // Start the interval to post messages
-    intervalId = setInterval(() => {
-      if (isPaused) return;
+    
+    // Use a transaction-like approach to prevent race conditions
+    isPostingLocked = true;
+    
+    // Check current count and get the next message index atomically
+    db.ref("feed/posts").once("value", snapshot => {
+      const posts = snapshot.val();
+      const currentCount = posts ? Object.keys(posts).length : 0;
       
-      // Check current count again to prevent race conditions
-      db.ref("feed/posts").once("value", snapshot => {
-        const posts = snapshot.val();
-        const currentCount = posts ? Object.keys(posts).length : 0;
-        
-        if (currentCount >= settings.messages.length) {
-          clearInterval(intervalId);
-          intervalId = null;
-          return;
-        }
+      if (currentCount >= settings.messages.length) {
+        clearInterval(intervalId);
+        intervalId = null;
+        isPostingLocked = false;
+        return;
+      }
 
-        // Post the next message to Firebase (this will trigger all listeners)
-        const messageToPost = settings.messages[currentCount];
-        const parsedMessage = parseMessage(messageToPost);
-        
-        const postData = {
-          message: parsedMessage, // Store as structured object
-          timestamp: Date.now()
-        };
-
-        db.ref("feed/posts").push(postData).catch(err => {
-          console.error("Error posting message:", err);
+      // Get the message content to check for duplicates
+      const messageToPost = settings.messages[currentCount];
+      const parsedMessage = parseMessage(messageToPost);
+      
+      // Check if this exact message was already posted (by content + timestamp proximity)
+      let messageAlreadyPosted = false;
+      if (posts) {
+        const recentPosts = Object.values(posts)
+          .filter(p => Math.abs(p.timestamp - Date.now()) < 5000); // Within 5 seconds
+        messageAlreadyPosted = recentPosts.some(p => {
+          const existingMsg = parseMessage(p.message || p);
+          return existingMsg.message === parsedMessage.message &&
+                 existingMsg.username === parsedMessage.username;
         });
+      }
+      
+      if (messageAlreadyPosted) {
+        console.log("Message already posted, skipping duplicate");
+        isPostingLocked = false;
+        return;
+      }
 
-        // Update currentIndex in Firebase for tracking
-        db.ref("settings/currentIndex").set(currentCount + 1);
-      });
-    }, settings.postingInterval || 3000);
-  });
+      // Post the next message to Firebase (this will trigger all listeners)
+      const postData = {
+        message: parsedMessage, // Store as structured object
+        timestamp: Date.now()
+      };
+
+      db.ref("feed/posts").push(postData)
+        .then(() => {
+          // Update currentIndex in Firebase for tracking
+          db.ref("settings/currentIndex").set(currentCount + 1);
+          isPostingLocked = false;
+        })
+        .catch(err => {
+          console.error("Error posting message:", err);
+          isPostingLocked = false;
+        });
+    });
+  }, settings.postingInterval || 3000);
 }
 
 // ----------------------------------------
@@ -295,6 +348,7 @@ function stopPosting() {
   intervalId = null;
 
   isPaused = false;
+  isPostingLocked = false;
   
   // Clear the feed in Firebase (this will update all clients)
   db.ref("feed/posts").remove();
@@ -302,8 +356,9 @@ function stopPosting() {
   // Reset Firebase counter
   db.ref("settings/currentIndex").set(0);
   
-  // Clear local feed
+  // Clear local feed and tracking
   document.getElementById("feed").innerHTML = "";
+  displayedPostIds.clear();
 }
 
 // ----------------------------------------
