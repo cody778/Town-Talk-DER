@@ -5,10 +5,10 @@
   "currentIndex": 0,
   "playState": "stop",
   "messages": [
-    "Hear ye! A new decree is posted by the town crier!",
-    "The blacksmith complains about rising iron prices again.",
-    "A local bard seeks recommendations for a new lute.",
-    "Town guard spotted a suspicious hooded traveler.",
-    "Farmer Jorik proudly presents his unusually large turnip."
+    "👑|TownCrier|@towncrier|Hear ye! A new decree is posted by the town crier!",
+    "🔨|Blacksmith|@blacksmith|The blacksmith complains about rising iron prices again.",
+    "🎭|Bard|@bard|A local bard seeks recommendations for a new lute.",
+    "🛡️|TownGuard|@townguard|Town guard spotted a suspicious hooded traveler.",
+    "🌾|FarmerJorik|@farmerjorik|Farmer Jorik proudly presents his unusually large turnip."
   ]
 }

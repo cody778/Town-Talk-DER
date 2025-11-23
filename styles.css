@@ -4,21 +4,21 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: #000;
-  color: #fff;
+  font-family: Georgia, serif;
+  background: #f9f2e7;
+  color: #2c1b10;
   line-height: 1.5;
 }
 
 /* Header */
 header {
-  background: #000;
-  color: #fff;
+  background: #5a3f2f;
+  color: #f5e9d5;
   padding: 0.75rem 1rem;
   position: sticky;
   top: 0;
   z-index: 10;
-  border-bottom: 1px solid #2f3336;
+  border-bottom: 4px solid #3c281c;
 }
 
 header h1 {
@@ -29,7 +29,7 @@ header h1 {
 
 .tagline {
   font-size: 0.75rem;
-  opacity: 0.7;
+  opacity: 0.8;
   margin: 0.25rem 0 0 0;
 }
 
@@ -40,17 +40,18 @@ header h1 {
   margin: 0 auto;
 }
 
-/* Twitter-like Tweet */
+/* Twitter-like Tweet with Medieval Colors */
 .tweet {
   display: flex;
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid #2f3336;
+  border-bottom: 2px solid #c7a97a;
+  background: #fff8e5;
   transition: background-color 0.2s;
   min-height: auto;
 }
 
 .tweet:hover {
-  background-color: #16181c;
+  background-color: #fef5e0;
 }
 
 /* Profile Picture (Emoji) */
@@ -63,9 +64,11 @@ header h1 {
   align-items: center;
   justify-content: center;
   margin-right: 0.75rem;
-  background: #1a1a1a;
+  background: #f5e9d5;
+  border: 2px solid #c7a97a;
   border-radius: 50%;
   flex-shrink: 0;
+  box-shadow: 2px 2px 0 #b48b4e;
 }
 
 /* Tweet Content */
@@ -86,17 +89,18 @@ header h1 {
 .username {
   font-weight: 700;
   font-size: 0.9375rem;
-  color: #fff;
+  color: #2c1b10;
 }
 
 .handle {
   font-size: 0.9375rem;
-  color: #71767b;
+  color: #5a3f2f;
+  opacity: 0.7;
 }
 
 .tweet-message {
   font-size: 0.9375rem;
-  color: #e7e9ea;
+  color: #2c1b10;
   word-wrap: break-word;
   white-space: pre-wrap;
   line-height: 1.4;
@@ -107,15 +111,15 @@ header h1 {
   text-align: center;
   margin-top: 5rem;
   padding: 1rem;
-  color: #fff;
+  color: #2c1b10;
 }
 
 #password-screen input {
   padding: 0.75rem;
   margin: 0.5rem;
-  border: 1px solid #2f3336;
-  background: #16181c;
-  color: #fff;
+  border: 2px solid #c7a97a;
+  background: #fff8e5;
+  color: #2c1b10;
   border-radius: 4px;
   font-size: 1rem;
   width: calc(100% - 2rem);
@@ -125,17 +129,18 @@ header h1 {
 #password-screen button {
   padding: 0.75rem 1.5rem;
   margin: 0.5rem;
-  background: #1d9bf0;
-  color: #fff;
-  border: none;
-  border-radius: 20px;
+  background: #d7b37b;
+  color: #3c281c;
+  border: 2px solid #b48b4e;
+  border-radius: 6px;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
+  box-shadow: 2px 2px 0 #b48b4e;
 }
 
 #password-screen button:hover {
-  background: #1a8cd8;
+  background: #e6c996;
 }
 
 .hidden {
@@ -148,27 +153,27 @@ header h1 {
   top: 0;
   left: 0;
   right: 0;
-  background: #16181c;
-  border-bottom: 1px solid #2f3336;
+  background: #ffe9bf;
+  border-bottom: 3px solid #b48b4e;
   padding: 1rem;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   z-index: 100;
   max-height: 80vh;
   overflow-y: auto;
-  color: #fff;
+  color: #2c1b10;
 }
 
 .drawer h2 {
   margin-top: 0;
   font-size: 1.25rem;
-  color: #fff;
+  color: #2c1b10;
 }
 
 .drawer label {
   display: block;
   margin-bottom: 0.5rem;
   font-size: 0.875rem;
-  color: #71767b;
+  color: #3c281c;
   font-weight: 500;
 }
 
@@ -178,9 +183,9 @@ header h1 {
   width: 100%;
   margin-bottom: 1rem;
   padding: 0.75rem;
-  border: 1px solid #2f3336;
-  background: #000;
-  color: #fff;
+  border: 2px solid #c7a97a;
+  background: #fff8e5;
+  color: #2c1b10;
   border-radius: 8px;
   font-size: 0.9375rem;
   font-family: inherit;
@@ -189,9 +194,9 @@ header h1 {
 .drawer input:focus,
 .drawer textarea:focus,
 .drawer select:focus {
-  outline: 2px solid #1d9bf0;
+  outline: 2px solid #b48b4e;
   outline-offset: 2px;
-  border-color: #1d9bf0;
+  border-color: #b48b4e;
 }
 
 .drawer textarea {
@@ -215,39 +220,41 @@ header h1 {
   flex: 1;
   min-width: 80px;
   padding: 0.75rem;
-  background: #1d9bf0;
-  border: none;
-  color: #fff;
+  background: #d7b37b;
+  border: 2px solid #b48b4e;
+  color: #3c281c;
   font-weight: 700;
-  border-radius: 20px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 0.9375rem;
   transition: background-color 0.2s;
+  box-shadow: 2px 2px 0 #b48b4e;
 }
 
 .admin-buttons button:hover {
-  background: #1a8cd8;
+  background: #e6c996;
 }
 
 .admin-buttons button:active {
-  background: #1773b8;
+  background: #c7a97a;
 }
 
 #save-settings {
   width: 100%;
   padding: 0.875rem;
-  background: #1d9bf0;
-  border: none;
-  color: #fff;
+  background: #d7b37b;
+  border: 2px solid #b48b4e;
+  color: #3c281c;
   font-weight: 700;
-  border-radius: 20px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 1rem;
   margin-top: 0.5rem;
+  box-shadow: 2px 2px 0 #b48b4e;
 }
 
 #save-settings:hover {
-  background: #1a8cd8;
+  background: #e6c996;
 }
 
 /* Mobile optimizations */
