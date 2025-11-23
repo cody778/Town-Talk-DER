@@ -1,4 +1,4 @@
-const PASSWORD = "crowns&coins94";
+const PASSWORD = "kys";
 var db = firebase.database();
 
 
