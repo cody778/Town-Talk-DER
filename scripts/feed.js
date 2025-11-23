@@ -67,11 +67,19 @@ function applySettings(newSettings) {
   const oldPlayState = settings.playState;
   const oldAutoPlay = settings.autoPlay;
 
+  // Store old settings for comparison
+  const wasEmpty = Object.keys(settings).length === 0;
+  
   settings = newSettings;
   console.log("Updated settings:", settings);
 
-  // If play state or autoPlay changed, react immediately
-  if (newSettings.playState !== oldPlayState || newSettings.autoPlay !== oldAutoPlay) {
+  // On first load, check if we should auto-start
+  if (wasEmpty && newSettings.playState === "start" && newSettings.autoPlay === true) {
+    handlePlayState(newSettings.playState, newSettings.autoPlay);
+    hasInitialized = true;
+  }
+  // If play state changed (manual button click), always react
+  else if (newSettings.playState !== oldPlayState) {
     handlePlayState(newSettings.playState, newSettings.autoPlay);
   }
 }
@@ -85,8 +93,9 @@ function handlePlayState(state, autoPlay) {
 
   console.log("Handling play state:", state, "autoPlay:", autoPlay);
 
-  // Only start if playState is "start" AND (autoPlay is true OR this is the first initialization)
-  if (state === "start" && (autoPlay || !hasInitialized)) {
+  if (state === "start") {
+    // Always start when playState is "start" (manual start button click)
+    // autoPlay only affects automatic starting on page load
     startPosting();
     hasInitialized = true;
   } else if (state === "pause") {
@@ -100,14 +109,18 @@ function handlePlayState(state, autoPlay) {
 // START POSTING MESSAGES
 // ----------------------------------------
 function startPosting() {
-  if (!settings.messages || settings.messages.length === 0) return;
-  if (isPaused) return;
-
-  // Check if we should actually post (respect autoPlay)
-  if (settings.autoPlay === false && hasInitialized) {
-    console.log("AutoPlay is disabled, not starting posting");
+  if (!settings.messages || settings.messages.length === 0) {
+    console.log("No messages to post");
     return;
   }
+  
+  // Clear any existing interval first
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
+  
+  isPaused = false;
 
   // Get current posted count from Firebase
   db.ref("feed/posts").once("value", snapshot => {
@@ -119,8 +132,7 @@ function startPosting() {
       return;
     }
 
-    isPaused = false;
-
+    // Start the interval to post messages
     intervalId = setInterval(() => {
       if (isPaused) return;
       
