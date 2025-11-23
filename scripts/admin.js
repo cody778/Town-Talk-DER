@@ -44,10 +44,10 @@ function loadSettings() {
 // -------------------------------
 document.getElementById("save-settings").addEventListener("click", () => {
   const updated = {
-    postingInterval: parseInt(document.getElementById("interval-input").value),
-    scrollSpeed: parseFloat(document.getElementById("speed-input").value),
+    postingInterval: parseInt(document.getElementById("interval-input").value) || 3000,
+    scrollSpeed: parseFloat(document.getElementById("speed-input").value) || 1,
     autoPlay: document.getElementById("autoplay-input").value === "true",
-    messages: document.getElementById("messages-input").value.split("\n"),
+    messages: document.getElementById("messages-input").value.split("\n").filter(m => m.trim() !== ""),
   };
 
   // Ensure currentIndex exists
@@ -55,10 +55,19 @@ document.getElementById("save-settings").addEventListener("click", () => {
     if (snapshot.val() === null) {
       updated.currentIndex = 0;
     }
+    
+    // Preserve playState if it exists
+    db.ref("settings/playState").once("value").then(playStateSnapshot => {
+      if (playStateSnapshot.val()) {
+        updated.playState = playStateSnapshot.val();
+      } else {
+        updated.playState = "stop";
+      }
 
-    db.ref("settings").update(updated)
-      .then(() => alert("Settings updated for ALL viewers."))
-      .catch(err => alert("Firebase error: " + err.message));
+      db.ref("settings").update(updated)
+        .then(() => alert("Settings updated for ALL viewers."))
+        .catch(err => alert("Firebase error: " + err.message));
+    });
   });
 });
 
@@ -80,7 +89,13 @@ document.getElementById("pause-btn").addEventListener("click", () => {
 });
 
 document.getElementById("stop-btn").addEventListener("click", () => {
-  db.ref("settings").update({ playState: "stop" })
-    .then(() => alert("Feed stopped/reset."))
+  // Clear the feed and reset
+  db.ref("feed/posts").remove().then(() => {
+    return db.ref("settings").update({ 
+      playState: "stop",
+      currentIndex: 0
+    });
+  })
+    .then(() => alert("Feed stopped/reset. All messages cleared."))
     .catch(err => alert("Error: " + err.message));
 });
