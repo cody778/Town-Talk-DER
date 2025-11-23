@@ -1,7 +1,8 @@
 {
   "postingInterval": 3000,
   "scrollSpeed": 1,
-  "autoPlay": true,
+  "autoPlay": false,
+  "currentIndex": 0,
   "playState": "stop",
   "messages": [
     "Hear ye! A new decree is posted by the town crier!",

@@ -50,10 +50,18 @@ document.getElementById("save-settings").addEventListener("click", () => {
     messages: document.getElementById("messages-input").value.split("\n"),
   };
 
-  db.ref("settings").update(updated)
-    .then(() => alert("Settings updated for ALL viewers."))
-    .catch(err => alert("Firebase error: " + err.message));
+  // Ensure currentIndex exists
+  db.ref("settings/currentIndex").once("value").then(snapshot => {
+    if (snapshot.val() === null) {
+      updated.currentIndex = 0;
+    }
+
+    db.ref("settings").update(updated)
+      .then(() => alert("Settings updated for ALL viewers."))
+      .catch(err => alert("Firebase error: " + err.message));
+  });
 });
+
 
 
 // -------------------------------
