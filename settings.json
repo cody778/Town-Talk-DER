@@ -1,5 +1,5 @@
 {
-  "postingInterval": 3000,
+  "postingInterval": 30000,
   "scrollSpeed": 1,
   "autoPlay": false,
   "currentIndex": 0,
